@@ -21,6 +21,8 @@
 		public var m_NeighborBottom:Cell;
 		public var m_NeighborRight:Cell;
 		
+		public var m_ChangedAfterDraw:Boolean = true;
+		
 		public var m_DamageResistance:Number;
 		
 		private var m_Neighbors:Array = new Array(3); 
@@ -71,7 +73,7 @@
 			m_Durability -= Damage;
 			if(m_Durability <= 0)
 			{
-				m_Durability = 0;
+				//m_Durability = 0;
 				breakWall();
 				return true;
 			}
@@ -123,6 +125,7 @@
 		public function breakWall():void
 		{
 			m_Wall = false;
+			m_Durability = 0;
 			if(m_Inner)
 			{
 				return;
@@ -151,6 +154,14 @@
 		public function makeInner():void
 		{
 			m_Inner = true;
+		}
+		public function drawMe():void
+		{
+			if(m_ChangedAfterDraw)
+			{
+				
+			}
+			m_ChangedAfterDraw = false;
 		}
     }
 }

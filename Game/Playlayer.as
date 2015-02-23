@@ -7,6 +7,7 @@
     {
 		private var m_Map:Game.Map;
 		private var m_FramesSkipped:int = 0;
+		private var m_MapGenerated:Boolean = false;
         public function Playlayer()
         {
 			trace("Playlayer");
@@ -17,11 +18,9 @@
         }
 		public function onEnterFrame(event:Event)
 		{
-			m_Map.generationTickPreDivider();
-			++m_FramesSkipped;
-			if(m_FramesSkipped > 10)
+			if(!m_MapGenerated)
 			{
-				m_FramesSkipped = 0;
+				m_MapGenerated = m_Map.generationTick();
 			}
 		}
     }
