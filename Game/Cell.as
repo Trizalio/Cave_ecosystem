@@ -4,6 +4,7 @@
     {
 		public static var c_DurabilityMax:Number = 10;
 		public var m_Durability:Number;
+		public var m_WaterLevel:Number;
 		
 		public var m_Illumination:Number;
 		
@@ -55,6 +56,7 @@
 			m_Wall = true;
 			m_Inner = true;
 			m_Illumination = 0.5;
+			m_WaterLevel = 0;
 			m_Durability = Math.random()*c_DurabilityMax;
 			m_Damaged = false;
 			m_DamageResistance = 0;
@@ -102,6 +104,10 @@
 			m_DamageResistance = ;
 		}*/
 		
+		public function isDamaged():Boolean
+		{
+			return m_Damaged;
+		}
 		public function takeDamage(Damage:Number, Sharpness:Number):Boolean
 		{
 			return takeDirectDamage(Damage);
