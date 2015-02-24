@@ -8,7 +8,7 @@
     {
 		// Constants
 		private static var c_CellSize:int = 10;
-		private static var c_MapSize:int = 1000;
+		private static var c_MapSize:int = 500;
 		private static var c_MountainRandomFactor:int = c_MapSize/40;
 
 		
@@ -24,21 +24,20 @@
 		
 		private var m_TicksSkipped:int = 0;
 		
-		private var m_ReachableCells:Array = new Array();
-		private var m_DamagedCells:Array = new Array();
-		private var m_ConnectedToOuter:Boolean = true;
 		
 		///////////////////////////////////////////////////////////////////////////////////
         public function Map()
         {
-            trace("Map");
+            //trace("Map");
 			//generateArray();
 			m_GenerationStep = 0;
+			m_Drawlayer = new flash.display.MovieClip();
+			this.addChild(m_Drawlayer);
 			//generateMountain();
 			//createCave();
 			//checkReachability();
 			//renderMap();
-            trace("!Map");
+            //trace("!Map");
         }
 		///////////////////////////////////////////////////////////////////////////////////
 		public function generationTickPreDivider()
@@ -57,19 +56,28 @@
 		{
             trace("generationStep " + m_GenerationStep);
 			var StartTime:uint = getTimer();
+			var Cicles:int = 0;
 			while(true)
 			{
 				var CurrentTime:uint = getTimer();
 				var DeltaTime = CurrentTime - StartTime;
-				if(DeltaTime > 20)
+				if(DeltaTime > 10)
 				{
 					break;
+				}
+				while(!renderChangedTick())
+				{						
+					DeltaTime = CurrentTime - StartTime;
+					if(DeltaTime > 10)
+					{
+						break;
+					}
 				}
 				if(m_GenerationStep == 0)
 				{
 					if(generateArrayTick())
 					{
-						m_GenerationStep = 1;
+						m_GenerationStep = 5;
 					}
 				}
 				else if(m_GenerationStep == 1)
@@ -92,11 +100,6 @@
 					{
 						destroyTick();
 					}
-					if(++m_tmpHolder > 20)
-					{
-						m_tmpHolder = 0;
-						renderMap();
-					}
 				}
 				else if(m_GenerationStep == 3)
 				{
@@ -112,20 +115,20 @@
 				{
 					return true;
 				}
+				++Cicles;
 			}
+			trace(Cicles);
 			
 			//if(m_GenerationStep != 0 && m_GenerationStep != 1 && m_GenerationStep != 2)
-			{
-				renderMap();
-			}
-            trace("!generationStep");
+				//renderMap();
+            ////trace("!generationStep");
 			return false;
 		}
 //		public function 
 		///////////////////////////////////////////////////////////////////////////////////
         public function createNextSource():Boolean
         {
-            trace("createNextSource");
+            ////trace("createNextSource");
 			var Divider:uint = c_MapSize/20;
 			var Step:uint = (c_MapSize-1)/Divider;
 			while(true)
@@ -139,15 +142,15 @@
 						m_NextSourceX += Step;
 						if(m_NextSourceX > c_MapSize)
 						{
-							trace("!createNextSource");
+							//trace("!createNextSource");
 							return true;
 						}
 					}
-					trace("here?");
-					trace(m_NextSourceX + ", " + m_NextSourceY);
+					//trace("here?");
+					//trace(m_NextSourceX + ", " + m_NextSourceY);
 					if(m_MapData[m_NextSourceX][m_NextSourceY].isWall())
 					{
-						trace("here!");
+						//trace("here!");
 						m_ReachableCells.length = 0;
 						m_DamagedCells.length = 0;
 						m_ReachableCells.push(m_MapData[m_NextSourceX][m_NextSourceY]);
@@ -157,7 +160,7 @@
 						//renderMap();
 						return false;
 					}
-					trace("!createNextSource");
+					//trace("!createNextSource");
 				}
 			}
 			return true;
@@ -166,12 +169,15 @@
 		
 		///////////////////////////////////////////////////////////////////////////////////
 		
+		private var m_ReachableCells:Array = new Array();
+		private var m_DamagedCells:Array = new Array();
+		private var m_ConnectedToOuter:Boolean = true;
 		private function destroyTick():void
 		{
-			trace("destroyTick");
+			//trace("destroyTick");
 			//for(var i:int = 0; i < c_MapSize*c_MapSize/50 || !m_ConnectedToOuter; ++i)
 			//{
-            	//trace("looking for target");
+            	////trace("looking for target");
 				var MinDurability = Cell.c_DurabilityMax;
 				var TargetCellNumber:int = -1;
 				for(var j:int = 0; j < m_ReachableCells.length; ++j)
@@ -225,10 +231,10 @@
 					}
 				}
 				
-            	//trace("checking target");
+            	////trace("checking target");
 				if(TargetCellNumber >= 0)
 				{
-            		//trace("target found");
+            		////trace("target found");
 					var TargetCell:Cell = m_ReachableCells[TargetCellNumber];
 					var Damage:Number = TargetCell.m_Durability;
 					var SideDamage:Number = Damage/4;
@@ -269,24 +275,26 @@
 					for(var z:int  = 0; z < m_DamagedCells.length; ++z)
 					{
 						m_DamagedCells[z].makeOuter();
+						m_ToRenderCells.push(m_DamagedCells[z]);
 					}
 				}
 			//}
-			trace("!destroyTick");
+			//trace("!destroyTick");
 		}
 		///////////////////////////////////////////////////////////////////////////////////
 		private var makeInner_i:int = 0;
 		private var makeInner_j:int = 0;
 		private function makeInnerTick()
 		{
-            trace("makeInnerTick");
+            //trace("makeInnerTick");
 			
-            trace("generateMountainTick");
+            //trace("generateMountainTick");
 			if(makeInner_i < c_MapSize)
 			{
 				if(makeInner_j < c_MapSize)
 				{
 					var CurCell:Cell = m_MapData[makeInner_i][makeInner_j];
+					m_ToRenderCells.push(CurCell);
 					CurCell.makeInner();
 					++makeInner_j;
 				}
@@ -302,13 +310,13 @@
 			{
 				return true;
 			}
-            trace("!makeInnerTick");
+            //trace("!makeInnerTick");
 		}
 		private var checkReachability_i:int = 0;
 		private var checkReachabilityNeighborCells:Array = new Array();
 		private function checkReachabilityTick()
 		{
-            trace("checkReachabilityTick");
+            //trace("checkReachabilityTick");
 			if(checkReachability_i == 0)
 			{
 				checkReachabilityNeighborCells.push(m_MapData[0][0]);
@@ -319,6 +327,7 @@
 				CurrentCell.makeOuter();
 				if(!CurrentCell.isWall())
 				{
+					m_ToRenderCells.push(CurrentCell);
 					CurrentCell.makeOuter();
 					var CurNeighbor0:Cell;
 					for(var s:int = 0; s < 4; ++s)
@@ -354,11 +363,11 @@
 			{
 				return true;
 			}
-            trace("!checkReachabilityTick");
+            //trace("!checkReachabilityTick");
 		}
 		private function checkReachability()
 		{
-            trace("checkReachability");
+            //trace("checkReachability");
 			for(var i:int = 0; i < c_MapSize; ++i)
 			{
 				for(var j:int = 0; j < c_MapSize; ++j)
@@ -404,13 +413,13 @@
 				NeighborCells.splice(0, 1);
 			}
 			
-            trace("!checkReachability");
+            //trace("!checkReachability");
 		}
 		
 		///////////////////////////////////////////////////////////////////////////////////
 		private function generateMountain()
 		{
-            trace("generateMountain");
+            //trace("generateMountain");
 			
 			for(var i:int = 0; i < c_MapSize; ++i)
 			{
@@ -427,17 +436,17 @@
 						CurCell.makeOuter();
 						CurCell.breakWall();
 						CurCell.m_Durability = -2*((RangePosition/c_MapSize)-0.5)*Cell.c_DurabilityMax;
-						trace(CurCell.m_Durability);
+						//trace(CurCell.m_Durability);
 					}
 				}
 			}
-            trace("!generateMountain");
+            //trace("!generateMountain");
 		}
 		private var generateMountain_i:int = 0;
 		private var generateMountain_j:int = 0;
 		private function generateMountainTick()
 		{
-            trace("generateMountainTick");
+            //trace("generateMountainTick");
 			if(generateMountain_i < c_MapSize)
 			{
 				if(generateMountain_j < c_MapSize)
@@ -450,10 +459,11 @@
 					var RangePosition = Math.sqrt(dx*dx + dy*dy) + (Math.random() - 0.5) * c_MountainRandomFactor;
 					if(PositivePosition > c_MapSize/2 || NegativePosition > c_MapSize/2 || RangePosition > c_MapSize*3/7)
 					{
+						m_ToRenderCells.push(CurCell);
 						CurCell.makeOuter();
 						CurCell.breakWall();
 						CurCell.m_Durability = -2*((RangePosition/c_MapSize)-0.5)*Cell.c_DurabilityMax;
-						trace(CurCell.m_Durability);
+						//trace(CurCell.m_Durability);
 					}
 					
 					
@@ -471,12 +481,12 @@
 			{
 				return true;
 			}
-            trace("!generateMountainTick");
+            //trace("!generateMountainTick");
 		}		
 		///////////////////////////////////////////////////////////////////////////////////
 		private function generateArray()
 		{
-            trace("generateArray");
+            //trace("generateArray");
 			for(var i:int = 0; i < c_MapSize; ++i)
 			{
 				m_MapData[i] = new Array(c_MapSize);
@@ -497,13 +507,13 @@
 					}
 				}
 			}
-            trace("!generateArray");
+            //trace("!generateArray");
 		}
 		private var generateArray_i:int = 0;
 		private var generateArray_j:int = 0;
 		private function generateArrayTick()
 		{
-            trace("generateArrayTick");
+            //trace("generateArrayTick");
 			if(generateArray_i < c_MapSize)
 			{
 				if(generateArray_j == 0)
@@ -513,6 +523,7 @@
 				if(generateArray_j < c_MapSize)
 				{
 					var NewCell:Cell = new Game.Cell(generateArray_i, generateArray_j);
+					m_ToRenderCells.push(NewCell);
 					
 					m_MapData[generateArray_i][generateArray_j] = NewCell;
 					if(generateArray_i > 0)
@@ -539,70 +550,47 @@
 			{
 				return true;
 			}
-            trace("!generateArrayTick");
+            //trace("!generateArrayTick");
 		}		
 		///////////////////////////////////////////////////////////////////////////////////
+		private var m_ToRenderCells:Array = new Array();
+		private function renderChangedTick():Boolean
+		{
+			//trace(m_ToRenderCells.length);
+			if(m_ToRenderCells.length > 0)
+			{
+				m_ToRenderCells[0].drawAt(m_Drawlayer, c_CellSize * m_Scale);
+				m_ToRenderCells.splice(0, 1);
+				return false;
+			}
+			return true;
+		}
 		private function renderMap()
 		{
-            trace("renderMap");
-			if(m_Drawlayer)
+            //trace("renderMap");
+			/*if(m_Drawlayer)
 			{
 				this.removeChild(m_Drawlayer);
 				// we do not free memory
 				//delete(m_Drawlayer);
 			}
 			m_Drawlayer = new flash.display.MovieClip();
-			this.addChild(m_Drawlayer);
-			
+			this.addChild(m_Drawlayer);*/
+			if(!m_Drawlayer)
+			{
+				m_Drawlayer = new flash.display.MovieClip();
+				this.addChild(m_Drawlayer);
+			}
 			
 			for(var i:int = 0; i < c_MapSize; ++i)
 			{
 				for(var j:int = 0; j < c_MapSize; ++j)
 				{
 					var CurCell = m_MapData[i][j];
-					//m_Drawlayer.graphics.lineStyle(2, 0x990000, .75);
-					if(CurCell.m_Wall)
-					{
-						m_Drawlayer.graphics.beginFill(0x00FF00, CurCell.m_Durability/10);
-						m_Drawlayer.graphics.moveTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-					}
-					else
-					{
-						m_Drawlayer.graphics.beginFill(0xFF0000, -CurCell.m_Durability/10);
-						m_Drawlayer.graphics.moveTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-					}
-					
-					// Draw water
-					var Water:Number = CurCell.m_WaterLevel;
-					m_Drawlayer.graphics.beginFill(0x0000FF, Water);
-					m_Drawlayer.graphics.moveTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-					m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-					m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-					m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-					m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-					
-					// Draw shadow
-					var Darken:Number = CurCell.m_Illumination;
-					if(CurCell.isInner())
-					{
-						m_Drawlayer.graphics.beginFill(0x000000, Darken);
-						m_Drawlayer.graphics.moveTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo((i + 1) * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, (j + 1) * c_CellSize * m_Scale);
-						m_Drawlayer.graphics.lineTo(i * c_CellSize * m_Scale, j * c_CellSize * m_Scale);
-					}
+					CurCell.drawAt(m_Drawlayer, c_CellSize * m_Scale);
 				}
 			}
-            trace("!renderMap");
+            //trace("!renderMap");
 		}
     }
 }

@@ -1,5 +1,7 @@
 ﻿package Game
 {
+    import flash.display.MovieClip;
+	import flash.display.Graphics;
     public class Cell
     {
 		public static var c_DurabilityMax:Number = 10;
@@ -25,7 +27,7 @@
 		
 		public var m_DamageResistance:Number;
 		
-		private var m_Neighbors:Array = new Array(3); 
+		/*private var m_Neighbors:Array = new Array(3); 
 		private function initArray():void
 		{
 			for(var i:int = 0; i < 3; ++i)
@@ -47,12 +49,11 @@
 				return m_Neighbors[i][j];
 			}
 			return null;
-		}
-		
+		}*/		
 		public function Cell(MyX, MyY)
 		{
 			//trace("Cell");
-			initArray();
+			//initArray();
 			m_X = MyX;
 			m_Y = MyY;
 			m_Wall = true;
@@ -68,6 +69,7 @@
 		
 		public function takeDirectDamage(Damage:Number):Boolean
 		{
+			m_ChangedAfterDraw = true;
 			m_Damaged = true;
 			if(!m_Wall){return true;}
 			m_Durability -= Damage;
@@ -126,40 +128,76 @@
 		{
 			m_Wall = false;
 			m_Durability = 0;
+			m_ChangedAfterDraw = true;
 			if(m_Inner)
 			{
 				return;
 			}
 			if(m_NeighborTop)
 			{
-				m_NeighborTop.m_Inner = false;
+				m_NeighborTop.makeOuter();
 			}
 			if(m_NeighborLeft)
 			{
-				m_NeighborLeft.m_Inner = false;
+				m_NeighborLeft.makeOuter();
 			}
 			if(m_NeighborBottom)
 			{
-				m_NeighborBottom.m_Inner = false;
+				m_NeighborBottom.makeOuter();
 			}
 			if(m_NeighborRight)
 			{
-				m_NeighborRight.m_Inner = false;
+				m_NeighborRight.makeOuter();
 			}
 		}
 		public function makeOuter():void
 		{
 			m_Inner = false;
+			m_ChangedAfterDraw = true;
 		}
 		public function makeInner():void
 		{
 			m_Inner = true;
+			m_ChangedAfterDraw = true;
 		}
-		public function drawMe():void
+		private function drawRectangleAt(Target:Graphics, Size:Number, RecColor:uint, RecAlpha:Number):void
 		{
+			Target.beginFill(RecColor, RecAlpha);
+			Target.moveTo(m_X * Size, m_Y * Size);
+			Target.lineTo((m_X + 1) * Size, m_Y * Size);
+			Target.lineTo((m_X + 1) * Size, (m_Y + 1) * Size);
+			Target.lineTo(m_X * Size, (m_Y + 1) * Size);
+			Target.lineTo(m_X * Size, m_Y * Size);
+		}
+		public function drawAt(Target:MovieClip, Size:Number):void
+		{
+			if(!Target)
+			{
+				return;
+			}
 			if(m_ChangedAfterDraw)
 			{
+				drawRectangleAt(Target.graphics, Size, 0xFFFFFF, 1);
+				if(m_Wall)
+				{
+					drawRectangleAt(Target.graphics, Size, 0x00FF00, m_Durability/10);
+				}
+				else
+				{
+					drawRectangleAt(Target.graphics, Size, 0xFF0000, -m_Durability/10);
+				}
+					
+				// Draw water
+				if(m_WaterLevel)
+				{
+					drawRectangleAt(Target.graphics, Size, 0x0000FF, m_WaterLevel);
+				}
 				
+				// Draw shadow
+				if(isInner())
+				{
+					drawRectangleAt(Target.graphics, Size, 0x000000, m_Illumination);
+				}
 			}
 			m_ChangedAfterDraw = false;
 		}
