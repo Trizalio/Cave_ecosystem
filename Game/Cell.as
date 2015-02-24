@@ -2,6 +2,7 @@
 {
     import flash.display.MovieClip;
 	import flash.display.Graphics;
+	import flash.display.BitmapData;
     public class Cell
     {
 		public static var c_DurabilityMax:Number = 10;
@@ -82,32 +83,6 @@
 			return false;
 		}
 		
-		
-		/*public function calculateDamageResistance():void
-		{
-			var NeighborsAbsorption = 0;
-			for(var i:int = -1; i <= 0; ++i)
-			{
-				for(var j:int = -1; j < 2; ++j)
-				{
-					if(i == 0 && j == 0)
-					{
-						break;
-					}
-					var CurNeighbor1:Cell = getNeighbor(i, j);
-					var CurNeighbor2:Cell = getNeighbor(i, j);
-					if(CurNeighbor)
-					{
-						if(CurNeighbor.isWall())
-						{
-							
-						}
-					}
-				}
-			}
-			m_DamageResistance = ;
-		}*/
-		
 		public function isDamaged():Boolean
 		{
 			return m_Damaged;
@@ -169,6 +144,33 @@
 			Target.lineTo(m_X * Size, (m_Y + 1) * Size);
 			Target.lineTo(m_X * Size, m_Y * Size);
 		}
+		public function drawAtBitmapData(Target:BitmapData):void
+		{
+			var CurRed:int = 255;
+			var CurGreen:int = 255;
+			var CurBlue:int = 255;
+			if(m_Wall)
+			{
+/*				if(m_Durability < 0)
+				{
+					trace("problems");
+				}*/
+				CurRed *= m_Durability/10;
+				CurBlue *= m_Durability/10;
+			}
+			else
+			{
+/*				if(m_Durability > 0)
+				{
+					trace("problems");
+				}*/
+				CurGreen *= -m_Durability/10;
+				CurBlue *= -m_Durability/10;
+			}
+			//trace(CurRed + " " + CurGreen + " " + CurBlue)
+			var CurColor:uint = CurRed << 16 | CurGreen << 8 | CurBlue;
+			Target.setPixel(m_X, m_Y, CurColor); 
+		}
 		public function drawAt(Target:MovieClip, Size:Number):void
 		{
 			if(!Target)
@@ -180,23 +182,23 @@
 				drawRectangleAt(Target.graphics, Size, 0xFFFFFF, 1);
 				if(m_Wall)
 				{
-					drawRectangleAt(Target.graphics, Size, 0x00FF00, m_Durability/10);
+					//drawRectangleAt(Target.graphics, Size, 0x00FF00, m_Durability/10);
 				}
 				else
 				{
-					drawRectangleAt(Target.graphics, Size, 0xFF0000, -m_Durability/10);
+					//drawRectangleAt(Target.graphics, Size, 0xFF0000, -m_Durability/10);
 				}
 					
 				// Draw water
 				if(m_WaterLevel)
 				{
-					drawRectangleAt(Target.graphics, Size, 0x0000FF, m_WaterLevel);
+					//drawRectangleAt(Target.graphics, Size, 0x0000FF, m_WaterLevel);
 				}
 				
 				// Draw shadow
 				if(isInner())
 				{
-					drawRectangleAt(Target.graphics, Size, 0x000000, m_Illumination);
+					//drawRectangleAt(Target.graphics, Size, 0x000000, m_Illumination);
 				}
 			}
 			m_ChangedAfterDraw = false;
