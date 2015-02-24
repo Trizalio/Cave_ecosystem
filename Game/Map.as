@@ -10,7 +10,7 @@
     {
 		// Constants
 		private static var c_CellSize:int = 10;
-		private static var c_MapSize:int = 200;
+		private static var c_MapSize:int = 300;
 		private static var c_MountainRandomFactor:int = c_MapSize/40;
 
 		
@@ -162,6 +162,7 @@
 						m_DamagedCells.length = 0;
 						m_ReachableCells.push(m_MapData[m_NextSourceX][m_NextSourceY]);
 						m_DamagedCells.push(m_MapData[m_NextSourceX][m_NextSourceY]);
+						//m_ToRenderCells.push(m_MapData[m_NextSourceX][m_NextSourceY]);
 						m_ConnectedToOuter = false;
 						//createNewSource(m_MapData[m_NextSourceX][m_NextSourceY]);
 						//renderMap();
@@ -219,6 +220,7 @@
 									{
 										m_ReachableCells.push(CurNeighbor0);
 										m_DamagedCells.push(CurNeighbor0);
+										//m_ToRenderCells.push(CurNeighbor0);
 									}
 								}
 							}
@@ -272,6 +274,7 @@
 							{
 								m_ReachableCells.push(CurNeighbor);
 								m_DamagedCells.push(CurNeighbor);
+								//m_ToRenderCells.push(CurNeighbor);
 							}
 							CurNeighbor.takeDamage(SideDamage, 0);
 						}
@@ -393,8 +396,8 @@
 						m_ToRenderCells.push(CurCell);
 						CurCell.makeOuter();
 						CurCell.breakWall();
-						CurCell.m_Durability = -2*((RangePosition/c_MapSize))*Cell.c_DurabilityMax;
-						if(CurCell.m_Durability > 0)
+						CurCell.m_Durability = -((RangePosition/c_MapSize) - 0.2)*Cell.c_DurabilityMax;
+						if(CurCell.m_Durability > 0 || CurCell.m_Durability < -10)
 						{
 							trace(CurCell.m_Durability);
 						}

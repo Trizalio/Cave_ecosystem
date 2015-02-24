@@ -13,6 +13,8 @@
 			trace("Playlayer");
 			m_Map = new Game.Map();
 			this.addChild(m_Map);
+			m_Map.x = 0;
+			m_Map.y = 0;
 			trace("!Playlayer");
 			addEventListener(Event.ENTER_FRAME, onEnterFrame);
         }

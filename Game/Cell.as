@@ -72,7 +72,7 @@
 		{
 			m_ChangedAfterDraw = true;
 			m_Damaged = true;
-			if(!m_Wall){return true;}
+			//if(!m_Wall){return true;}
 			m_Durability -= Damage;
 			if(m_Durability <= 0)
 			{
@@ -102,7 +102,10 @@
 		public function breakWall():void
 		{
 			m_Wall = false;
-			m_Durability = 0;
+			if(m_Durability > 0)
+			{
+				m_Durability = 0;
+			}
 			m_ChangedAfterDraw = true;
 			if(m_Inner)
 			{
@@ -151,21 +154,21 @@
 			var CurBlue:int = 255;
 			if(m_Wall)
 			{
-/*				if(m_Durability < 0)
+				if(m_Durability < 0)
 				{
-					trace("problems");
-				}*/
+					trace("problems1");
+				}
 				CurRed *= m_Durability/10;
 				CurBlue *= m_Durability/10;
 			}
 			else
 			{
-/*				if(m_Durability > 0)
+				if(m_Durability > 0)
 				{
-					trace("problems");
-				}*/
-				CurGreen *= -m_Durability/10;
-				CurBlue *= -m_Durability/10;
+					trace("problems2");
+				}
+				CurGreen *= 1 + m_Durability/10;
+				CurBlue *= 1 + m_Durability/10;
 			}
 			//trace(CurRed + " " + CurGreen + " " + CurBlue)
 			var CurColor:uint = CurRed << 16 | CurGreen << 8 | CurBlue;

@@ -10,6 +10,8 @@
              trace("Main")
 			 m_Playlayer = new Game.Playlayer();
 			 this.addChild(m_Playlayer);
+			 m_Playlayer.x = 0;
+			 m_Playlayer.y = 0;
              trace("!Main");
         }
     }
