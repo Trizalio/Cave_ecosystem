@@ -10,7 +10,7 @@
     {
 		// Constants
 		private static var c_CellSize:int = 10;
-		private static var c_MapSize:int = 300;
+		private static var c_MapSize:int = 500;
 		private static var c_MountainRandomFactor:int = c_MapSize/40;
 
 		
@@ -40,6 +40,10 @@
 			m_Drawlayer = new flash.display.MovieClip();
 			this.addChild(m_Drawlayer);
 			addChild(bitmapImage); 
+			
+			
+			bitmapImage.height = 800;//stage.stageHeight;
+			bitmapImage.width = 800;//stage.stageWidth;
 			//generateMountain();
 			//createCave();
 			//checkReachability();
@@ -110,15 +114,24 @@
 				}
 				else if(m_GenerationStep == 3)
 				{
-					makeInnerTick();
-					m_GenerationStep = 4;
+					if(makeInnerTick())
+					{
+						m_GenerationStep = 4;
+					}
 				}
 				else if(m_GenerationStep == 4)
 				{
-					checkReachabilityTick();
-					m_GenerationStep = 5;
+					if(checkReachabilityTick())
+					{
+						m_GenerationStep = 5;
+					}
 				}
 				else if(m_GenerationStep == 5)
+				{
+					//waterTick();
+					m_GenerationStep = 6;
+				}
+				else if(m_GenerationStep == 6)
 				{
 					return true;
 				}
@@ -131,7 +144,7 @@
             ////trace("!generationStep");
 			return false;
 		}
-//		public function 
+		//public function waterTick():
 		///////////////////////////////////////////////////////////////////////////////////
         public function createNextSource():Boolean
         {
@@ -246,7 +259,7 @@
             		////trace("target found");
 					var TargetCell:Cell = m_ReachableCells[TargetCellNumber];
 					var Damage:Number = TargetCell.m_Durability;
-					var SideDamage:Number = Damage/4;
+					var SideDamage:Number = Damage/6;
 					var CurNeighbor:Cell;
 					var NeighborsDamaged:int = 0;
 					TargetCell.takeDamage(Damage, 0);
@@ -335,9 +348,9 @@
 			{
 				var CurrentCell = checkReachabilityNeighborCells[0];
 				CurrentCell.makeOuter();
+				m_ToRenderCells.push(CurrentCell);
 				if(!CurrentCell.isWall())
 				{
-					m_ToRenderCells.push(CurrentCell);
 					CurrentCell.makeOuter();
 					var CurNeighbor0:Cell;
 					for(var s:int = 0; s < 4; ++s)

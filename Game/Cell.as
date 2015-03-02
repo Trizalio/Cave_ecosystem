@@ -154,21 +154,22 @@
 			var CurBlue:int = 255;
 			if(m_Wall)
 			{
-				if(m_Durability < 0)
-				{
-					trace("problems1");
-				}
 				CurRed *= m_Durability/10;
 				CurBlue *= m_Durability/10;
 			}
 			else
 			{
-				if(m_Durability > 0)
-				{
-					trace("problems2");
-				}
 				CurGreen *= 1 + m_Durability/10;
 				CurBlue *= 1 + m_Durability/10;
+			}
+			CurRed *= m_Illumination;
+			CurGreen *= m_Illumination;
+			CurBlue *= m_Illumination;
+			if(m_Inner)
+			{
+				CurRed /= 3;
+				CurGreen /= 3;
+				CurBlue /= 3;
 			}
 			//trace(CurRed + " " + CurGreen + " " + CurBlue)
 			var CurColor:uint = CurRed << 16 | CurGreen << 8 | CurBlue;
