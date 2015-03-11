@@ -10,7 +10,7 @@
     {
 		// Constants
 		private static var c_CellSize:int = 10;
-		private static var c_MapSize:int = 500;
+		private static var c_MapSize:int = 400;//90000
 		private static var c_MountainRandomFactor:int = c_MapSize/40;
 
 		
@@ -42,8 +42,8 @@
 			addChild(bitmapImage); 
 			
 			
-			bitmapImage.height = 800;//stage.stageHeight;
-			bitmapImage.width = 800;//stage.stageWidth;
+			bitmapImage.height = 900;//stage.stageHeight;
+			bitmapImage.width = 900;//stage.stageWidth;
 			//generateMountain();
 			//createCave();
 			//checkReachability();
@@ -51,23 +51,13 @@
             //trace("!Map");
         }
 		///////////////////////////////////////////////////////////////////////////////////
-		public function generationTickPreDivider()
-		{
-			generationTick();
-			if(++m_TicksSkipped > 2)
-			{
-				m_TicksSkipped = 0;
-				generationTick();
-			}
-//			destroyTick()
-		}
-		///////////////////////////////////////////////////////////////////////////////////
 		private var m_tmpHolder:int = 0;
 		public function generationTick():Boolean
 		{
             trace("generationStep " + m_GenerationStep);
 			var StartTime:uint = getTimer();
 			var Cicles:int = 0;
+			
 			while(true)
 			{
 				var CurrentTime:uint = getTimer();
@@ -93,51 +83,69 @@
 				}
 				else if(m_GenerationStep == 1)
 				{
-					if(generateMountainTick())
+					if(meltingInitTick())
 					{
 						m_GenerationStep = 2;
 					}
 				}
 				else if(m_GenerationStep == 2)
 				{
+					if(meltingTick())
+					{
+						m_GenerationStep = 3;
+					}
+				}
+				/*else if(m_GenerationStep == 1)
+				{
+					if(generateMountainTick())
+					{
+						m_GenerationStep = 2;
+					}
+				}*/
+				else if(m_GenerationStep == 3)
+				{
+					
+					
 					if(m_ConnectedToOuter)
 					{
 						if(createNextSource())
 						{
-							m_GenerationStep = 3;
+							m_GenerationStep = 4;
 						}
 					} 
 					else 
 					{
 						destroyTick();
 					}
-				}
-				else if(m_GenerationStep == 3)
-				{
-					if(makeInnerTick())
-					{
-						m_GenerationStep = 4;
-					}
+					//break;
 				}
 				else if(m_GenerationStep == 4)
 				{
-					if(checkReachabilityTick())
+					if(makeInnerTick())
 					{
 						m_GenerationStep = 5;
 					}
 				}
 				else if(m_GenerationStep == 5)
 				{
-					//waterTick();
-					m_GenerationStep = 6;
+					if(checkReachabilityTick())
+					{
+						m_GenerationStep = 6;
+					}
 				}
 				else if(m_GenerationStep == 6)
+				{
+					//waterTick();
+					m_GenerationStep = 7;
+				}
+				else if(m_GenerationStep == 7)
 				{
 					return true;
 				}
 				++Cicles;
 			}
 			trace(Cicles);
+			trace(checkReachabilityNeighborCells.length);
 			
 			//if(m_GenerationStep != 0 && m_GenerationStep != 1 && m_GenerationStep != 2)
 				//renderMap();
@@ -168,7 +176,7 @@
 					}
 					//trace("here?");
 					//trace(m_NextSourceX + ", " + m_NextSourceY);
-					if(m_MapData[m_NextSourceX][m_NextSourceY].isWall())
+					if(m_MapData[m_NextSourceX][m_NextSourceY].isWall() && m_MapData[m_NextSourceX][m_NextSourceY].isInner())
 					{
 						//trace("here!");
 						m_ReachableCells.length = 0;
@@ -199,57 +207,41 @@
 			//for(var i:int = 0; i < c_MapSize*c_MapSize/50 || !m_ConnectedToOuter; ++i)
 			//{
             	////trace("looking for target");
+				for(var j:int = 0; j < m_ReachableCells.length; ++j)
+				{
+					var CurCell:Cell = m_ReachableCells[j];
+					if(CurCell.m_Durability <= 0)
+					{
+						if(!CurCell.isInner())
+						{
+							CurCell.m_Illumination += 0.5;
+							if(CurCell.m_NeighborLeft) {CurCell.m_NeighborLeft.m_Illumination += 0.25;}
+							if(CurCell.m_NeighborRight) {CurCell.m_NeighborRight.m_Illumination += 0.25;}
+							if(CurCell.m_NeighborTop) {CurCell.m_NeighborTop.m_Illumination += 0.25;}
+							if(CurCell.m_NeighborBottom) {CurCell.m_NeighborBottom.m_Illumination += 0.25;}
+							m_ConnectedToOuter = true;
+							trace("connected to outer");
+						}
+						m_ReachableCells.splice(j, 1);
+						--j;
+						
+					}
+				}
+				
 				var MinDurability = Cell.c_DurabilityMax;
 				var TargetCellNumber:int = -1;
 				for(var j:int = 0; j < m_ReachableCells.length; ++j)
 				{
 					var CurCell:Cell = m_ReachableCells[j];
-					if(MinDurability > CurCell.m_Durability)
+					if(!CurCell.isInner() && CurCell.isWall())
 					{
-						if(CurCell.m_Durability <= 0)
-						{
-							var CurNeighbor0:Cell;
-							for(var s:int = 0; s < 4; ++s)
-							{
-								if(s == 0)
-								{
-									CurNeighbor0 = CurCell.m_NeighborLeft;
-								}
-								else if(s == 1)
-								{
-									CurNeighbor0 = CurCell.m_NeighborRight;
-								}
-								else if(s == 2)
-								{
-									CurNeighbor0 = CurCell.m_NeighborTop;
-								}
-								else if(s == 3)
-								{
-									CurNeighbor0 = CurCell.m_NeighborBottom;
-								}
-								if(CurNeighbor0 && CurNeighbor0.isWall())
-								{
-									if(m_ReachableCells.indexOf(CurNeighbor0) < 0 && m_DamagedCells.indexOf(CurNeighbor0) < 0)
-									{
-										m_ReachableCells.push(CurNeighbor0);
-										m_DamagedCells.push(CurNeighbor0);
-										//m_ToRenderCells.push(CurNeighbor0);
-									}
-								}
-							}
-							if(!CurCell.isInner())
-							{
-								m_ConnectedToOuter = true;
-							}
-							m_ReachableCells.splice(j, 1);
-							--j;
-							
-						}
-						else
-						{
-							MinDurability = CurCell.m_Durability;
-							TargetCellNumber = j;
-						}
+						MinDurability = 0;
+						TargetCellNumber = j;
+					}
+					if(MinDurability > CurCell.m_Durability )
+					{
+						MinDurability = CurCell.m_Durability;
+						TargetCellNumber = j;
 					}
 				}
 				
@@ -258,8 +250,9 @@
 				{
             		////trace("target found");
 					var TargetCell:Cell = m_ReachableCells[TargetCellNumber];
+					m_ToRenderCells.push(TargetCell);
 					var Damage:Number = TargetCell.m_Durability;
-					var SideDamage:Number = Damage/6;
+					var SideDamage:Number = Damage/10;
 					var CurNeighbor:Cell;
 					var NeighborsDamaged:int = 0;
 					TargetCell.takeDamage(Damage, 0);
@@ -281,15 +274,17 @@
 						{
 							CurNeighbor = TargetCell.m_NeighborBottom;
 						}
-						if(CurNeighbor && CurNeighbor.isWall())
+						if(CurNeighbor)
 						{
-							if(m_ReachableCells.indexOf(CurNeighbor) < 0)
+							if(!CurNeighbor.isDamaged())
 							{
+								//CurNeighbor.m_WaterLevel = 1;
 								m_ReachableCells.push(CurNeighbor);
 								m_DamagedCells.push(CurNeighbor);
+									
+								//CurNeighbor.takeDamage(SideDamage, 0);
 								//m_ToRenderCells.push(CurNeighbor);
 							}
-							CurNeighbor.takeDamage(SideDamage, 0);
 						}
 					}
 				}
@@ -298,6 +293,7 @@
 					for(var z:int  = 0; z < m_DamagedCells.length; ++z)
 					{
 						m_DamagedCells[z].makeOuter();
+						m_DamagedCells[z].setDamaged(false);
 						m_ToRenderCells.push(m_DamagedCells[z]);
 					}
 				}
@@ -307,7 +303,7 @@
 		///////////////////////////////////////////////////////////////////////////////////
 		private var makeInner_i:int = 0;
 		private var makeInner_j:int = 0;
-		private function makeInnerTick()
+		private function makeInnerTick():Boolean
 		{
             //trace("makeInnerTick");
 			
@@ -335,23 +331,67 @@
 			}
             //trace("!makeInnerTick");
 		}
-		private var checkReachability_i:int = 0;
-		private var checkReachabilityNeighborCells:Array = new Array();
-		private function checkReachabilityTick()
+		private var meltingInit_i:int = 0;
+		private var meltingInit_phase:int = 0;
+		
+		private var meltingRechableCells:Array = new Array();
+		
+		private function meltingInitTick():Boolean
 		{
-            //trace("checkReachabilityTick");
-			if(checkReachability_i == 0)
+            //trace("!meltingInitTick " + meltingInit_i);
+			var CurrentCell:Cell;
+			if(meltingInit_phase == 0)
 			{
-				checkReachabilityNeighborCells.push(m_MapData[0][0]);
+				CurrentCell = m_MapData[0][meltingInit_i];
 			}
-			if(checkReachabilityNeighborCells.length > 0)
+			else if(meltingInit_phase == 1)
 			{
-				var CurrentCell = checkReachabilityNeighborCells[0];
-				CurrentCell.makeOuter();
-				m_ToRenderCells.push(CurrentCell);
+				CurrentCell = m_MapData[meltingInit_i][c_MapSize - 1];
+			}
+			else if(meltingInit_phase == 2)
+			{
+				CurrentCell = m_MapData[c_MapSize - 1][c_MapSize - 1 - meltingInit_i];
+			}
+			else if(meltingInit_phase == 3)
+			{
+				CurrentCell = m_MapData[c_MapSize - 1 - meltingInit_i][0];
+			}
+			else
+			{
+				return true;
+			}
+			//CurrentCell.m_Illumination += 0.25;
+			CurrentCell.makeOuter();
+			meltingRechableCells.push(CurrentCell);
+			m_ToRenderCells.push(CurrentCell);
+			if(++meltingInit_i == c_MapSize)
+			{
+				meltingInit_phase += 1;
+				meltingInit_i = 0;
+			}
+			//return true;
+			return false;
+		}
+		private var melting_i:int = 0;
+		private var melting_melted:int = 0;
+		private function meltingTick():Boolean
+		{
+			if(meltingRechableCells.length > 0 && melting_melted < c_MapSize * c_MapSize * 0.1)
+			{
+            	//trace("!meltingTick " + meltingRechableCells.length);
+				var CurrentCell:Cell = meltingRechableCells[melting_i];
+				//trace("current cell: " + CurrentCell.m_X + ", " + CurrentCell.m_Y);
 				if(!CurrentCell.isWall())
 				{
-					CurrentCell.makeOuter();
+					meltingRechableCells.splice(melting_i, 1);
+					melting_i -= 1;
+				}
+				else if(CurrentCell.takeDirectDamage(1))
+				{
+					meltingRechableCells.splice(melting_i, 1);
+					melting_i -= 1;
+					melting_melted += 1;
+					m_ToRenderCells.push(CurrentCell);
 					var CurNeighbor0:Cell;
 					for(var s:int = 0; s < 4; ++s)
 					{
@@ -371,15 +411,70 @@
 						{
 							CurNeighbor0 = CurrentCell.m_NeighborBottom;
 						}
-						if(CurNeighbor0 && CurNeighbor0.isInner() && checkReachabilityNeighborCells.indexOf(CurNeighbor0) < 0)
+						if(CurNeighbor0 && CurNeighbor0.isWall())
 						{
+							meltingRechableCells.push(CurNeighbor0);
+							//trace("added: " + CurNeighbor0.m_X + ", " + CurNeighbor0.m_Y);
+						}
+					}
+				}
+				CurrentCell.setDamaged(false);
+				//checkReachabilityNeighborCells.splice(0, 1);
+			
+				++melting_i;
+				if(melting_i >= meltingRechableCells.length)
+				{
+					melting_i = 0;
+				}
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		private var checkReachability_init:Boolean = false;
+		private var checkReachabilityNeighborCells:Array = new Array();
+		private function checkReachabilityTick():Boolean
+		{
+            //trace("checkReachabilityTick");
+			if(checkReachability_init == false)
+			{
+				checkReachability_init = true;
+				checkReachabilityNeighborCells.push(m_MapData[0][0]);
+			}
+			if(checkReachabilityNeighborCells.length > 0)
+			{
+				var CurrentCell = checkReachabilityNeighborCells.shift();//[0];
+				m_ToRenderCells.push(CurrentCell);
+				if(!CurrentCell.isWall())
+				{
+					var CurNeighbor0:Cell;
+					for(var s:int = 0; s < 4; ++s)
+					{
+						if(s == 0)
+						{
+							CurNeighbor0 = CurrentCell.m_NeighborLeft;
+						}
+						else if(s == 1)
+						{
+							CurNeighbor0 = CurrentCell.m_NeighborRight;
+						}
+						else if(s == 2)
+						{
+							CurNeighbor0 = CurrentCell.m_NeighborTop;
+						}
+						else if(s == 3)
+						{
+							CurNeighbor0 = CurrentCell.m_NeighborBottom;
+						}
+						if(CurNeighbor0 && CurNeighbor0.isInner())
+						{
+							CurNeighbor0.makeOuter();
 							checkReachabilityNeighborCells.push(CurNeighbor0);
 						}
 					}
 				}
-				checkReachabilityNeighborCells.splice(0, 1);
-			
-				++checkReachability_i;
 				return false;
 			}
 			else
@@ -391,7 +486,7 @@
 		///////////////////////////////////////////////////////////////////////////////////
 		private var generateMountain_i:int = 0;
 		private var generateMountain_j:int = 0;
-		private function generateMountainTick()
+		private function generateMountainTick():Boolean
 		{
             //trace("generateMountainTick");
 			if(generateMountain_i < c_MapSize)
@@ -436,7 +531,7 @@
 		///////////////////////////////////////////////////////////////////////////////////
 		private var generateArray_i:int = 0;
 		private var generateArray_j:int = 0;
-		private function generateArrayTick()
+		private function generateArrayTick():Boolean
 		{
             //trace("generateArrayTick");
 			if(generateArray_i < c_MapSize)

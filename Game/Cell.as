@@ -82,7 +82,10 @@
 			}
 			return false;
 		}
-		
+		public function setDamaged(State:Boolean):void
+		{
+			m_Damaged = State;
+		}
 		public function isDamaged():Boolean
 		{
 			return m_Damaged;
@@ -156,6 +159,9 @@
 			{
 				CurRed *= m_Durability/10;
 				CurBlue *= m_Durability/10;
+				CurRed /= 2;
+				CurGreen /= 2;
+				CurBlue /= 2;
 			}
 			else
 			{
@@ -163,13 +169,24 @@
 				CurBlue *= 1 + m_Durability/10;
 			}
 			CurRed *= m_Illumination;
-			CurGreen *= m_Illumination;
+			CurGreen *= m_Illumination;m_Damaged
 			CurBlue *= m_Illumination;
+			/*if(m_WaterLevel == 1)
+			{
+				CurBlue += 100;
+			}
+			if(m_Damaged)
+			{
+				CurRed += 100;
+			}*/
 			if(m_Inner)
 			{
-				CurRed /= 3;
-				CurGreen /= 3;
-				CurBlue /= 3;
+				//CurRed = 0;
+				//CurGreen = 0;
+				//CurBlue = 0;
+				CurRed /= 2;
+				CurGreen /= 2;
+				CurBlue /= 2;
 			}
 			//trace(CurRed + " " + CurGreen + " " + CurBlue)
 			var CurColor:uint = CurRed << 16 | CurGreen << 8 | CurBlue;
