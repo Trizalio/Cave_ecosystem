@@ -20,7 +20,8 @@
 			m_Map.y = 0;
 			trace("!Playlayer");
 			addEventListener(Event.ENTER_FRAME, onEnterFrame);
-			addEventListener( MouseEvent.MOUSE_DOWN, beginDrag );
+			addEventListener(MouseEvent.MOUSE_DOWN, beginDrag );
+			addEventListener(MouseEvent.MOUSE_WHEEL, handleMouseWheel);
 			
         }
 		public function onEnterFrame(event:Event)
@@ -29,6 +30,23 @@
 			{
 				m_MapGenerated = m_Map.generationTick();
 			}
+		}
+		
+		function handleMouseWheel(e:MouseEvent):void {
+			trace(e.delta);
+			
+			var power:Number = 40;
+			var scaleFactor:Number = power /(power - e.delta);
+			
+			var mousePosition_X = e.stageX - m_Map.x;
+			var mousePosition_Y = e.stageY - m_Map.y;
+			
+			m_Map.x += (1 - scaleFactor) * mousePosition_X;
+			m_Map.y += (1 - scaleFactor) * mousePosition_Y;
+			
+			m_Map.width *= scaleFactor;
+			m_Map.height *= scaleFactor;
+			
 		}
 		
 		function beginDrag( e:MouseEvent )

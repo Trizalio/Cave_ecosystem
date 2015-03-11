@@ -42,8 +42,8 @@
 			addChild(bitmapImage); 
 			
 			
-			bitmapImage.height = 900;//stage.stageHeight;
-			bitmapImage.width = 900;//stage.stageWidth;
+			bitmapImage.height = 900/3;//stage.stageHeight;
+			bitmapImage.width = 900/3;//stage.stageWidth;
 			//generateMountain();
 			//createCave();
 			//checkReachability();
@@ -214,11 +214,11 @@
 					{
 						if(!CurCell.isInner())
 						{
-							CurCell.m_Illumination += 0.5;
-							if(CurCell.m_NeighborLeft) {CurCell.m_NeighborLeft.m_Illumination += 0.25;}
-							if(CurCell.m_NeighborRight) {CurCell.m_NeighborRight.m_Illumination += 0.25;}
-							if(CurCell.m_NeighborTop) {CurCell.m_NeighborTop.m_Illumination += 0.25;}
-							if(CurCell.m_NeighborBottom) {CurCell.m_NeighborBottom.m_Illumination += 0.25;}
+							//CurCell.m_Illumination += 0.5;
+							//if(CurCell.m_NeighborLeft) {CurCell.m_NeighborLeft.m_Illumination += 0.25;}
+							//if(CurCell.m_NeighborRight) {CurCell.m_NeighborRight.m_Illumination += 0.25;}
+							//if(CurCell.m_NeighborTop) {CurCell.m_NeighborTop.m_Illumination += 0.25;}
+							//if(CurCell.m_NeighborBottom) {CurCell.m_NeighborBottom.m_Illumination += 0.25;}
 							m_ConnectedToOuter = true;
 							trace("connected to outer");
 						}
@@ -230,9 +230,9 @@
 				
 				var MinDurability = Cell.c_DurabilityMax;
 				var TargetCellNumber:int = -1;
-				for(var j:int = 0; j < m_ReachableCells.length; ++j)
+				for(j = 0; j < m_ReachableCells.length; ++j)
 				{
-					var CurCell:Cell = m_ReachableCells[j];
+					CurCell = m_ReachableCells[j];
 					if(!CurCell.isInner() && CurCell.isWall())
 					{
 						MinDurability = 0;
