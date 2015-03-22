@@ -86,6 +86,14 @@
 		{
 			m_Damaged = State;
 		}
+		public function getWaterCalcLevel():Number
+		{
+			return m_Durability + m_WaterLevel;
+		}
+		public function getGroundLevel():Number
+		{
+			return m_Durability;
+		}
 		public function isDamaged():Boolean
 		{
 			return m_Damaged;
@@ -171,11 +179,13 @@
 			CurRed *= m_Illumination;
 			CurGreen *= m_Illumination;m_Damaged
 			CurBlue *= m_Illumination;
-			/*if(m_WaterLevel == 1)
+			if(m_WaterLevel > 0)
 			{
-				CurBlue += 100;
+				CurBlue += 60;
+				CurBlue += Math.sqrt(m_WaterLevel);
+				//CurBlue += m_WaterLevel;
 			}
-			if(m_Damaged)
+			/*if(m_Damaged)
 			{
 				CurRed += 100;
 			}*/

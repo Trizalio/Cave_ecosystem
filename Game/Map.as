@@ -10,7 +10,7 @@
     {
 		// Constants
 		private static var c_CellSize:int = 10;
-		private static var c_MapSize:int = 400;//90000
+		private static var c_MapSize:int = 500;//90000
 		private static var c_MountainRandomFactor:int = c_MapSize/40;
 
 		
@@ -42,8 +42,8 @@
 			addChild(bitmapImage); 
 			
 			
-			bitmapImage.height = 900/3;//stage.stageHeight;
-			bitmapImage.width = 900/3;//stage.stageWidth;
+			bitmapImage.height = 900;//stage.stageHeight;
+			bitmapImage.width = 900;//stage.stageWidth;
 			//generateMountain();
 			//createCave();
 			//checkReachability();
@@ -130,15 +130,30 @@
 				{
 					if(checkReachabilityTick())
 					{
-						m_GenerationStep = 6;
+						m_GenerationStep = 7;
 					}
 				}
 				else if(m_GenerationStep == 6)
 				{
-					//waterTick();
-					m_GenerationStep = 7;
+					if(m_RiverStable)
+					{
+						if(createNextWaterSource())
+						{
+							m_GenerationStep = 7;
+						}
+					}
+					else
+					{
+						waterTick()
+					}
+					//break;
 				}
 				else if(m_GenerationStep == 7)
+				{
+					//waterTick();
+					m_GenerationStep = 8;
+				}
+				else if(m_GenerationStep == 8)
 				{
 					return true;
 				}
@@ -187,6 +202,8 @@
 						m_ConnectedToOuter = false;
 						//createNewSource(m_MapData[m_NextSourceX][m_NextSourceY]);
 						//renderMap();
+						
+						
 						return false;
 					}
 					//trace("!createNextSource");
@@ -194,6 +211,155 @@
 			}
 			return true;
         }
+		///////////////////////////////////////////////////////////////////////////////////
+		public function createNextWaterSource():Boolean
+        {
+            ////trace("createNextSource");
+			var Divider:uint = c_MapSize/20;
+			var Step:uint = (c_MapSize-1)/Divider;
+			while(true)
+			{
+				if(m_NextSourceX < c_MapSize)
+				{
+					m_NextSourceY += Step;
+					if(m_NextSourceY > c_MapSize)
+					{
+						m_NextSourceY = 0;
+						m_NextSourceX += Step;
+						if(m_NextSourceX > c_MapSize)
+						{
+							//trace("!createNextSource");
+							return true;
+						}
+					}
+					//trace("here?");
+					//trace(m_NextSourceX + ", " + m_NextSourceY);
+					if(m_MapData[m_NextSourceX][m_NextSourceY].isWall() && m_MapData[m_NextSourceX][m_NextSourceY].isInner())
+					{
+						m_WaterSources.push(m_MapData[m_NextSourceX][m_NextSourceY]);
+						m_WateredCells.push(m_MapData[m_NextSourceX][m_NextSourceY]);
+						return false;
+					}
+					//trace("!createNextSource");
+				}
+			}
+			return true;
+        }
+		
+		private var m_WateredCells:Array = new Array();
+		private var m_WaterSources:Array = new Array();
+		private var m_WaterGenerated:Boolean = false;
+		private var m_Water_i:int = 0;
+		private var m_RiverStable:Boolean = false;
+		private var m_RiverStableTemp:Boolean = false;
+		private function waterTick():Boolean
+		{
+			//trace(m_WaterSources.length + ", " + m_WateredCells.length + m_WaterGenerated);
+			var CurCell:Cell;
+			if(m_WaterGenerated)
+			{
+				if(m_Water_i < m_WateredCells.length)
+				{
+					CurCell = m_WateredCells[m_Water_i];
+					var ShiftingWater:Number = CurCell.m_WaterLevel / 10;
+					if(ShiftingWater > 1)
+					{
+						var CurNeighbor0:Cell;
+						var MyLevel:Number = CurCell.getWaterCalcLevel();
+						var MyGroundLevel:Number = CurCell.getGroundLevel();
+						m_ToRenderCells.push(CurCell);
+						for(var s:int = 0; s < 4; ++s)
+						{
+							if(s == 0)
+							{
+								CurNeighbor0 = CurCell.m_NeighborLeft;
+							}
+							else if(s == 1)
+							{
+								CurNeighbor0 = CurCell.m_NeighborRight;
+							}
+							else if(s == 2)
+							{
+								CurNeighbor0 = CurCell.m_NeighborTop;
+							}
+							else if(s == 3)
+							{
+								CurNeighbor0 = CurCell.m_NeighborBottom;
+							}
+							if(CurNeighbor0)
+							{
+								if(!CurNeighbor0.isWall())
+								{
+									var NeighborLevel:Number = CurNeighbor0.getWaterCalcLevel();
+									var DeltaLevel:Number = (MyLevel - NeighborLevel) / MyLevel;
+									if(DeltaLevel <= 0)
+									{
+										continue;
+									}
+									
+									
+									if(CurNeighbor0.m_WaterLevel == 0)
+									{
+										m_WateredCells.push(CurNeighbor0);
+									}
+									
+									CurNeighbor0.m_WaterLevel += ShiftingWater * DeltaLevel;
+									CurCell.m_WaterLevel -= ShiftingWater * DeltaLevel;
+									
+									m_ToRenderCells.push(CurNeighbor0);
+									
+									var NeighborGroundLevel:Number = CurNeighbor0.getGroundLevel();
+									var DeltaGroundLevel:Number = (MyGroundLevel - NeighborGroundLevel) / 10;
+									if(DeltaGroundLevel <= 0.1)
+									{
+										continue;
+									}
+									
+									CurNeighbor0.m_Durability += DeltaGroundLevel;
+									CurCell.m_Durability -= DeltaGroundLevel;
+									m_RiverStableTemp = false;
+									
+									//trace(deltaLevel + ", " + CurNeighbor0.m_WaterLevel);
+								}
+							}
+							else
+							{
+								CurCell.m_WaterLevel -= ShiftingWater;
+							}
+						}
+					}
+				}
+				else
+				{
+					m_Water_i = 0;
+					m_WaterGenerated = false;
+					if(m_RiverStableTemp)
+					{
+						m_RiverStable = true;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				if(m_Water_i < m_WaterSources.length)
+				{
+					CurCell = m_WaterSources[m_Water_i];
+					CurCell.m_WaterLevel += 30;
+					m_ToRenderCells.push(CurCell);
+					//trace(CurCell.m_WaterLevel);
+				}
+				else
+				{
+					m_Water_i = 0;
+					m_WaterGenerated = true;
+					m_RiverStableTemp = true;
+				}
+			}
+			++m_Water_i;
+			
+			return false;
+		}
 		
 		
 		///////////////////////////////////////////////////////////////////////////////////

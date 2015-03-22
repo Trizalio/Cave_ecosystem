@@ -33,7 +33,7 @@
 		}
 		
 		function handleMouseWheel(e:MouseEvent):void {
-			trace(e.delta);
+			//trace(e.delta);
 			
 			var power:Number = 40;
 			var scaleFactor:Number = power /(power - e.delta);
